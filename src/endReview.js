@@ -1,25 +1,26 @@
-const calculateBadge = require("./calculateBadge");
-const checkModerator = require("./checkModerator");
+const calculateBadge = require("./calculate.badge");
+// const checkModerator = require("./checkModerator");
+const { addLabel, issueComment, removeLabel } = require("./routes");
 
-async function endReview(context) {
-  let reviewDetails = await calculateBadge(context);
-  if ((await checkModerator(context)) == true)
-    context.github.issues.update(context.issue({ state: "closed" }));
-
-  context.github.issues.removeLabel(context.issue({ name: ["review-begin"] }));
-  context.github.issues.addLabels(context.issue({ labels: ["review-end"] }));
-
-  const message =
+const endReview = async (results) => {
+  let resultsObj = await calculateBadge(results);
+  let message =
     "\n**Markdown Badge Link:**\n```\n" +
-    reviewDetails[0] +
+    resultsObj.markdownBadgeImage +
     "\n```" +
     "\n**HTML Badge Link:**\n```\n" +
-    reviewDetails[1] +
+    resultsObj.htmlBadgeImage +
     "\n```";
 
-  return context.github.issues.createComment(
-    context.issue({ body: reviewDetails[0] + message })
-  );
-}
+  /**********
+   * add logic for bot closing issue if moderator is  in the list
+   *
+   * removed it because it was redundant
+   */
+
+  await removeLabel(results, "review-begin");
+  await addLabel(results, ["review-end"]);
+  await issueComment(results, resultsObj.markdownBadgeImage + message);
+};
 
 module.exports = endReview;

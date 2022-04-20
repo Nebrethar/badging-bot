@@ -1,27 +1,35 @@
-const postWelcome = require("./src/postWelcome");
-const postChecklist = require("./src/postChecklist");
-const commandResponse = require("./src/commandResponse");
-const endReview = require("./src/endReview");
-const commands = require("probot-commands");
-const postHelp = require("./src/postHelp");
-const assignReviewers = require("./src/assignReviewers");
+const bodyParser = require("body-parser");
+const { parsed: envs } = require("dotenv").config();
+const express = require("express");
+const SmeeClient = require("smee-client");
+const bot = require("./bot");
 
-module.exports = app => {
-  //app.on("issues.opened", postWelcome);
-  //app.on("issues.opened", assignReviewers);
-  app.on("issues.opened", async (context) => {
-    if (context.payload.issue.title.includes("[Virtual Event]") || context.payload.issue.title.includes("[In-Person Event]")) {
-      postWelcome(context);
-      //assignReviewers(context);
-    }
+// create instances
+const app = express();
+var router = express.Router();
+
+// middlewares
+app.use(bodyParser.json());
+app.use(router);
+
+// receive webhook responses from repo
+router.post("/", async (req, res) => {
+  const data = await req.body;
+  res.sendStatus(200);
+  bot(data);
+});
+
+// setup local server
+app.listen(process.env.PORT, () => {
+  console.log(`Server Running on Port ${envs.PORT}`);
+});
+
+//connect local server to network client in development
+if (process.env.NODE_ENV !== "production") {
+  const smee = new SmeeClient({
+    source: "https://smee.io/badging",
+    target: `http://localhost:${process.env.PORT}/`,
+    logger: console,
   });
-  app.on("issues.assigned", async (context) => {
-    if (context.payload.issue.title.includes("[Virtual Event]") || context.payload.issue.title.includes("[In-Person Event]")) {
-      postChecklist(context);
-    }
-  });
-  //app.on("issues.assigned", postChecklist);
-  commands(app, "result", commandResponse);
-  commands(app, "end", endReview);
-  commands(app, "help", postHelp);
-};
+  smee.start();
+}

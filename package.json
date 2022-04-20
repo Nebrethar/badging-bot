@@ -1,54 +1,50 @@
 {
-  "name": "list-bot-test",
+  "name": "badging-bot",
   "version": "1.0.0",
   "private": true,
-  "description": "A Probot app",
+  "description": "A github app that automates some of the review processes for CHAOSS DEI Badging applications",
   "author": "Aastha Bist <abist119@gmail.com>",
   "license": "ISC",
-  "repository": "https://github.com/bistaastha/list-bot-test.git",
-  "homepage": "https://github.com/bistaastha/list-bot-test",
-  "bugs": "https://github.com/bistaastha/list-bot-test/issues",
-  "keywords": [
-    "probot",
-    "github",
-    "probot-app"
-  ],
+  "repository": "https://github.com/badging/badging-bot.git",
+  "homepage": "https://github.com/badging/badging-bot",
+  "bugs": "https://github.com/badging/badging-bot/issues",
   "scripts": {
-    "dev": "nodemon",
-    "start": "probot run ./index.js",
-    "lint": "standard --fix",
-    "test": "jest && standard",
-    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+    "lint": "npx eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "prettier": "npx prettier . --check",
+    "prettier:fix": "npm run prettier -- --write",
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "generate-content": "node content.js",
+    "dev": "npm run generate-content && nodemon index.js",
+    "start": "npm run generate-content && node index.js"
   },
   "dependencies": {
-    "beautify": "0.0.8",
-    "fs": "0.0.1-security",
-    "probot": "^9.15.1",
-    "probot-commands": "^1.1.0"
+    "axios": "0.26.1",
+    "body-parser": "1.19.2",
+    "dotenv": "16.0.0",
+    "express": "4.17.3"
   },
   "devDependencies": {
-    "jest": "^26.1.0",
-    "nock": "^12.0.3",
-    "nodemon": "^2.0.4",
-    "smee-client": "^1.1.0",
-    "standard": "^14.3.4"
+    "eslint": "8.13.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "husky": "7.0.4",
+    "lint-staged": "12.3.7",
+    "nodemon": "2.0.15",
+    "prettier": "2.6.2",
+    "smee-client": "1.2.2"
   },
   "engines": {
     "node": ">= 8.3.0"
   },
-  "standard": {
-    "env": [
-      "jest"
+  "lint-staged": {
+    ".": [
+        "npm run format"
     ]
-  },
-  "nodemonConfig": {
-    "exec": "npm start",
-    "watch": [
-      ".env",
-      "."
-    ]
-  },
-  "jest": {
-    "testEnvironment": "node"
+},
+  "husky": {   
+    "hooks": {  
+       "pre-commit": "lint-staged"        
+     }   
   }
 }
